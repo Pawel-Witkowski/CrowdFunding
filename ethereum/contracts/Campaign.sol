@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.4.17;
 
 contract CampaignFactory{
     address[] public deployedCampaigns;
@@ -36,12 +36,13 @@ contract Campaign {
     
     function contribute() public payable {
         require(msg.value >= minimumContribute);
-        approvers[msg.sender] = true;
-        approversCount++;
+        if (!approvers[msg.sender]){
+            approvers[msg.sender] = true;
+            approversCount++;
+        }
     }
     
     function createRequest(string description, uint value, address recipient) public restricted{
-        // require(approvers[msg.sender]);
         Request memory req = Request({
             description: description,
             value: value,
@@ -71,6 +72,21 @@ contract Campaign {
         
     }
     
+    function getContractSummary() public view returns(
+        uint, uint, uint, uint, address
+    ){
+        return(
+            minimumContribute,
+            this.balance,
+            requests.length,
+            approversCount,
+            manager
+        );
+    }
+
+    function getRequestsCount() public view returns(uint){
+        return requests.length;
+    }
     modifier restricted(){
         require(msg.sender == manager);
         _;
